@@ -23,7 +23,7 @@ app.get('/companies/:companyname/categories/:categoryname/products', async (req,
     // const { top = 10, minPrice, maxPrice } = req.query;
 
     // Extracting the Authorization token from the request headers
-    const authToken = req.headers.Authorization;
+    const authToken = req.headers.authorization;
     if (!authToken) {
         return res.status(401).json({ error: 'Authorization header is required' });
     }
@@ -36,8 +36,16 @@ app.get('/companies/:companyname/categories/:categoryname/products', async (req,
             params: { top, minPrice, maxPrice},
             headers: { Authorization: authToken }
         });
-
-        res.json(response.data);
+        //bubble sort to sort the data on the basis of price of each product.
+        const data = response.data;
+        for (let i = 0; i < data.length - 1; i++) {
+            for (let j = 0; j < data.length - 1 - i; j++) {
+                if (data[j].price > data[j + 1].price) {
+                    [data[j], data[j + 1]] = [data[j + 1], data[j]];
+                }
+            }
+        }
+        res.json(data);
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
