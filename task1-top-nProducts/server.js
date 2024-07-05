@@ -11,12 +11,6 @@ app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
 });
 
-// Route Registered
-app.post('/register', (req, res) => {
-    // Your registration logic here
-    res.send('Registered successfully');
-});
-
 // get request for categories
 app.get('/companies/:companyname/categories/:categoryname/products', async (req, res) => {
     const { categoryname, companyname } = req.params;
