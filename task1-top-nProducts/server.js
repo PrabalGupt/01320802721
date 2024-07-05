@@ -30,14 +30,17 @@ app.get('/companies/:companyname/categories/:categoryname/products', async (req,
     const top = 10;
     const minPrice = 1;
     const maxPrice = 10000;
-    console.log(authToken)
+    // console.log(authToken)
     try {
         const response = await axios.get(`http://20.244.56.144/test/companies/${companyname}/categories/${categoryname}/products`, {
             params: { top, minPrice, maxPrice},
             headers: { Authorization: authToken }
         });
         //bubble sort to sort the data on the basis of price of each product.
-        const data = response.data;
+        const data = response.data.map((product, index) => ({
+            ...product,
+            productid: `product-${index + 1}`
+        }));
         for (let i = 0; i < data.length - 1; i++) {
             for (let j = 0; j < data.length - 1 - i; j++) {
                 if (data[j].price > data[j + 1].price) {
@@ -45,6 +48,7 @@ app.get('/companies/:companyname/categories/:categoryname/products', async (req,
                 }
             }
         }
+        localStorage.setItem('myData', JSON.stringify(data));
         res.json(data);
     } catch (error) {
         res.status(500).json({ error: error.message });
@@ -54,21 +58,13 @@ app.get('/companies/:companyname/categories/:categoryname/products', async (req,
 // Get request for product details
 app.get('/categories/:categoryname/products/:productid', async (req, res) => {
     const { categoryname, productid } = req.params;
-
+    const authToken = req.headers.authorization;
+    console.log(authToken)
     try {
-        // const response = await axios.get(`http://20.244.56.144/test/companies/AMZ/categories/${categoryname}/products/${productid}`);
-        axios.get(`http://20.244.56.144/test/companies/AMZ/categories/${categoryname}/products/${productid}`, {
-            headers: {
-                Authorization: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJNYXBDbGFpbXMiOnsiZXhwIjoxNzIwMTYxNDg2LCJpYXQiOjE3MjAxNjExODYsImlzcyI6IkFmZm9yZG1lZCIsImp0aSI6IjIyNGE5OTdhLTZiMzMtNDJlMi05MmE4LTdhZWUyOThmYTk1MCIsInN1YiI6InByYWJhbC5ndXB0YTIwMDNAZ21haWwuY29tIn0sImNvbXBhbnlOYW1lIjoiZ29NYXJ0IiwiY2xpZW50SUQiOiIyMjRhOTk3YS02YjMzLTQyZTItOTJhOC03YWVlMjk4ZmE5NTAiLCJjbGllbnRTZWNyZXQiOiJoS3NVa3hOV1hMRkVWZUxOIiwib3duZXJOYW1lIjoiUHJhYmFsIEd1cHRhIiwib3duZXJFbWFpbCI6InByYWJhbC5ndXB0YTIwMDNAZ21haWwuY29tIiwicm9sbE5vIjoiMDEzMjA4MDI3MjEifQ.XbsJt6ZTZcYdZ6Hu5cDaZs5IYgnWnd15cfrWAIzAokk`
-            }
-        })
-        .then(response => {
-            console.log(response.data);
-        })
-        .catch(error => {
-            console.error('Error:', error.message);
-        });
-        res.json(response.data);
+        const storedData = localStorage.getItem('myData');
+        const parsedData = JSON.parse(storedData);
+        const foundItem = parsedData.find(item => item.productid === productid);
+        res.json(foundItem);
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
